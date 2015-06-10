@@ -8,29 +8,30 @@
      * New parameters available on the ajax call:
      * localCache   : true // required - either a boolean (in which case localStorage is used), or an object
      * implementing the Storage interface, in which case that object is used instead.
-     * cacheTTL     : 5,           // optional - cache time in hours, default is 5.
+     * cacheTTL     : 1,           // optional - cache time in hours, default is 1.
      * cacheKey     : 'post',      // optional - key under which cached string will be stored
      * isCacheValid : function  // optional - return true for valid, false for invalid
      * @method $.ajaxPrefilter
      * @param options {Object} Options for the ajax call, modified with ajax standard settings
      */
     $.ajaxPrefilter(function(options){
+
+        if (!options.localCache) return;
+
         var storage = (options.localCache === true) ? window.localStorage : options.localCache,
-            hourstl = options.cacheTTL || 5,
+            hourstl = options.cacheTTL || 1,
             cacheKey = options.cacheKey || options.url.replace(/jQuery.*/,'') + options.type + options.data,
             ttl = storage.getItem(cacheKey + 'cachettl'),
             cacheValid = options.isCacheValid,
             value;
-
-        if (!storage) return;
-
+            
         if (cacheValid && typeof cacheValid === 'function' && !cacheValid()){
             storage.removeItem(cacheKey);
         }
 
         if (ttl && ttl < +new Date()){
-            storage.removeItem( cacheKey );
-            storage.removeItem( cacheKey + 'cachettl' );
+            storage.removeItem(cacheKey);
+            storage.removeItem(cacheKey + 'cachettl');
             ttl = 'expired';
         }
 
@@ -58,8 +59,8 @@
             };
 
             // store timestamp
-            if ( ! ttl || ttl === 'expired' ) {
-                storage.setItem( cacheKey + 'cachettl', +new Date() + 1000 * 60 * 60 * hourstl );
+            if (!ttl || ttl === 'expired') {
+                storage.setItem(cacheKey + 'cachettl', +new Date() + 1000 * 60 * 60 * hourstl);
             }
         }
     });
